@@ -1,7 +1,6 @@
 package com.corkay.coolweather;
 
 import android.app.Fragment;
-import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +9,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,9 +25,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.security.auth.callback.Callback;
+
 
 import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.Response;
 
 public class ChooseAreaFragment extends Fragment {
@@ -38,7 +39,7 @@ public class ChooseAreaFragment extends Fragment {
 
     public static final int LEVEL_COUNTY = 2;
 
-    private ProgressDialog progressDialog;
+    private ProgressBar progressBar;
 
     private TextView titleText;
 
@@ -74,9 +75,9 @@ public class ChooseAreaFragment extends Fragment {
      */
     private int currentLevel;
 
-    @Override
-    public View onCreatView(LayoutInflater inflater, ViewGroup container,
-                            Bundle saveInstanceState){
+
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                            Bundle savedInstanceState){
         View view = inflater.inflate(R.layout.choose_area,container,false);
         titleText = (TextView)view.findViewById(R.id.title_text);
         backButton = (Button)view.findViewById(R.id.back_button);
@@ -136,7 +137,7 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCities(){
         titleText.setText(selectedProvince.getProvinceName());
         backButton.setVisibility(View.VISIBLE);
-        cityList = DataSuppport.where("provinceid = ?",String.valueOf(selectedProvince.getId())).
+        cityList = DataSupport.where("provinceId = ?",String.valueOf(selectedProvince.getId())).
                 find(City.class);
         if (cityList.size() > 0){
             dataList.clear();
@@ -158,7 +159,7 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCounties(){
         titleText.setText(selectedCity.getCityName());
         backButton.setVisibility(View.VISIBLE);
-        countyList = DataSupport.where("cityid = ?",String.valueOf(selectedCity.
+        countyList = DataSupport.where("cityId = ?",String.valueOf(selectedCity.
         getId())).find(County.class);
         if (countyList.size() > 0){
             dataList.clear();
@@ -179,9 +180,9 @@ public class ChooseAreaFragment extends Fragment {
      * 根据输入的地址和类型从服务器上查询省市县数据
      */
     private void queryFromServer(String address,final String type){
-        showProgressDialog();
+        showProgressBar();
         HttpUtil.sendOkHttpRequest(address,new Callback(){
-            @Override
+
             public void onResponse(Call call, Response response)throws IOException{
                 String responseText = response.body().string();
                 boolean result = false;
@@ -196,7 +197,7 @@ public class ChooseAreaFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            closeProgressDialog();
+                            closeProgressBar();
                             if ("province".equals(type)){
                                 queryProvinces();
                             }else if ("city".equals(type)){
@@ -209,12 +210,12 @@ public class ChooseAreaFragment extends Fragment {
                 }
             }
             @Override
-            public void onFailure(Call call,IOException e){
+            public void onFailure(Call call, IOException e){
                 //通过runOnUiThread（）方法回到主线程处理逻辑
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        closeProgressDialog();
+                        closeProgressBar();
                         Toast.makeText(getContext(),"加载失败",Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -224,20 +225,18 @@ public class ChooseAreaFragment extends Fragment {
     /**
      * 显示进度对话框
      */
-    private void showProgressDialog(){
-        if (progressDialog == null){
-            progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setMessage("正在加载...请稍候...");
-            progressDialog.setCanceledOnTouchOutside(false);
+    private void showProgressBar(){
+        if (progressBar == null){
+            progressBar = new ProgressBar(getActivity());
+            progressBar.setVisibility(View.VISIBLE);
         }
-        progressDialog.show();
     }
     /**
      * 关闭进度对话框
      */
-    private void closeProgressDialog(){
-        if (progressDialog != null){
-            progressDialog.dismiss();
+    private void closeProgressBar(){
+        if (progressBar != null){
+            progressBar.setVisibility(View.GONE);
         }
     }
 }
